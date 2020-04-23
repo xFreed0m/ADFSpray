@@ -21,6 +21,10 @@ python3 ADFSpray.py -u [USERNAME] -p [PASSWORD] -t [TARGET URL] [METHOD]
 ## Options to consider
 * adfs|autodiscover|basicauth
   * the method of authentication to use, autodiscover uses NTLM, adfs is MicrosoftForm and basic auth is well...basic authentication
+  * suggested targets:
+    * NTLM - https://autodiscover.[COMPANY].com/autodiscover/autodiscover.xml
+	* basicauth - https://reports.office365.com/ecp/reportingwebservice/reporting.svc
+	* adfs - https://[SSO-SUBDOMAIN].[COMPANY].com (without /adfs/ls/)
 * -p\\-P
   * single password or file with passwords (one each line)
 * -t\\-T
@@ -35,7 +39,10 @@ python3 ADFSpray.py -u [USERNAME] -p [PASSWORD] -t [TARGET URL] [METHOD]
   * random throttling time between attempts (based on user input for min and max values)
 
 ### Credit
-Inspired by https://github.com/Mr-Un1k0d3r/RedTeamScripts/blob/master/adfs-spray.py
+Inspired by:
+  * https://github.com/Mr-Un1k0d3r/RedTeamScripts/blob/master/adfs-spray.py
+  * https://github.com/Mr-Un1k0d3r/RedTeamScripts/raw/master/password-spray.py
+  * https://danielchronlund.com/2020/03/17/azure-ad-password-spray-attacks-with-powershell-and-how-to-defend-your-tenant/
 
 ### Issues, bugs and other code-issues
 Yeah, I know, this code isn't the best. I'm fine with it as I'm not a developer and this is part of my learning process.
