@@ -4,9 +4,6 @@
 ADFSpray is a python3 tool to perform password spray attack against Microsoft ADFS.
 ALWAYS VERIFY THE LOCKOUT POLICY TO PREVENT LOCKING USERS.
 
-Currently this has been tested against autodiscover host (under NTLM authentication):
-
-https://autodiscover.[COMPANY].com/autodiscover/autodiscover.xml
 
 ## How to use it
 First, install the needed dependencies:
