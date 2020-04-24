@@ -350,8 +350,6 @@ if __name__ == "__main__":
     main()
 
 # TODO:
-# add Basic-auth support (https://reports.office365.com/ecp/reportingwebservice/reporting.svc)
-# check why adfs always returns 200
 # check if target accessible with shorter timeout
 # check other web responses to identify expired password, mfa, no such username, locked etc.
 # auto discover the autodiscover?
