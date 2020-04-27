@@ -136,6 +136,7 @@ def random_time(minimum, maximum):
 
 def basicauth_attempts(users, passes, targets, output_file_name, sleep_time, random, min_sleep, max_sleep, verbose):
     working_creds_counter = 0  # zeroing the counter of working creds before starting to count
+    
     try:
         LOGGER.info("[*] Started running at: %s" % datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
         output('Status', 'Username', 'Password', 'Target', output_file_name)  # creating the 1st line in the output file
@@ -179,6 +180,7 @@ def basicauth_attempts(users, passes, targets, output_file_name, sleep_time, ran
 
 def autodiscover_attempts(users, passes, targets, output_file_name, sleep_time, random, min_sleep, max_sleep, verbose):
     working_creds_counter = 0  # zeroing the counter of working creds before starting to count
+
     try:
         LOGGER.info("[*] Started running at: %s" % datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
         output('Status', 'Username', 'Password', 'Target', output_file_name)  # creating the 1st line in the output file
@@ -221,8 +223,6 @@ def autodiscover_attempts(users, passes, targets, output_file_name, sleep_time, 
 
 
 def adfs_attempts(users, passes, targets, output_file_name, sleep_time, random, min_sleep, max_sleep, verbose):
-    # Not working yet, need to check and test further
-
     working_creds_counter = 0  # zeroing the counter of working creds before starting to count
 
     try:
