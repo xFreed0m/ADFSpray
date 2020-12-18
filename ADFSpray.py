@@ -164,7 +164,7 @@ def basicauth_attempts(users, passes, targets, output_file_name, sleep_time, ran
                         else:
                             time.sleep(float(sleep_time))
                     except requests.exceptions.ConnectionError as e:
-                        LOGGER.debug("[!] SSL Issue, skipping %s. " % username)
+                        LOGGER.debug("[-] SSL Issue, skipping %s. " % username)
                         continue
                         
         LOGGER.info("[*] Overall compromised accounts: %s" % working_creds_counter)
@@ -212,7 +212,7 @@ def autodiscover_attempts(users, passes, targets, output_file_name, sleep_time, 
                         else:
                             time.sleep(float(sleep_time))
                     except requests.exceptions.ConnectionError as e:
-                        LOGGER.debug("[!] SSL Issue, skipping %s. " % username)
+                        LOGGER.debug("[-] SSL Issue, skipping %s. " % username)
                         continue
                         
         LOGGER.info("[*] Overall compromised accounts: %s" % working_creds_counter)
@@ -272,7 +272,7 @@ def adfs_attempts(users, passes, targets, output_file_name, sleep_time, random, 
                         else:
                             time.sleep(float(sleep_time))
                     except requests.exceptions.ConnectionError as e:
-                        LOGGER.debug("[!] SSL Issue, skipping %s. " % username)
+                        LOGGER.debug("[-] SSL Issue, skipping %s. " % username)
                         continue
                         
         LOGGER.info("[*] Overall compromised accounts: %s" % working_creds_counter)
