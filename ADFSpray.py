@@ -1,5 +1,6 @@
 # Python3 tool to perform password spraying attack against ADFS
 # by @xFreed0m
+# modify by xzenx86
 
 import argparse
 import csv
