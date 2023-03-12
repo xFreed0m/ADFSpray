@@ -34,7 +34,11 @@ python3 ADFSpray.py -u [USERNAME] -p [PASSWORD] -t [TARGET URL] [METHOD]
   * throttling time (in seconds) between attempts
 * -r
   * random throttling time between attempts (based on user input for min and max values)
-
+* -m
+  * character string to search in the answer
+* -p
+  * make a post request basic auth 
+  
 ### Credit
 Inspired by:
   * https://github.com/Mr-Un1k0d3r/RedTeamScripts/blob/master/adfs-spray.py

